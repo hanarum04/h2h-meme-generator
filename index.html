@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>H2H Face Booth ✨</title>
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm/vision_bundle.js" crossorigin="anonymous"></script>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -37,7 +36,6 @@
     align-items: center;
   }
 
-  /* Subtle grain overlay */
   body::before {
     content: '';
     position: fixed;
@@ -49,7 +47,6 @@
     opacity: 0.5;
   }
 
-  /* Radial glow in bg */
   body::after {
     content: '';
     position: fixed;
@@ -89,7 +86,6 @@
     letter-spacing: 0.3px;
   }
 
-  /* ─── Status badge ─── */
   #status-bar {
     display: flex;
     align-items: center;
@@ -110,13 +106,12 @@
     transition: background 0.3s;
     flex-shrink: 0;
   }
-  #status-dot.ready { background: #28c840; box-shadow: 0 0 6px #28c840; }
+  #status-dot.ready   { background: #28c840; box-shadow: 0 0 6px #28c840; }
   #status-dot.loading { background: #febc2e; animation: pulse 1s infinite; }
-  #status-dot.detected { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+  #status-dot.detected{ background: var(--accent); box-shadow: 0 0 8px var(--accent); }
 
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
 
-  /* ─── Main stage ─── */
   .stage {
     position: relative;
     z-index: 10;
@@ -128,7 +123,6 @@
     justify-content: center;
   }
 
-  /* ─── Mac-style window ─── */
   .mac-window {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -151,18 +145,16 @@
     border-bottom: 1px solid var(--border);
     flex-shrink: 0;
   }
-  .titlebar-dot { width: 11px; height: 11px; border-radius: 50%; cursor: default; }
+  .titlebar-dot { width: 11px; height: 11px; border-radius: 50%; }
   .titlebar-title {
     flex: 1;
     text-align: center;
     font-size: 11px;
     color: var(--muted);
-    font-family: 'DM Sans', sans-serif;
     margin-right: 28px;
     letter-spacing: 0.2px;
   }
 
-  /* ─── BIG window: meme display ─── */
   .win-meme { width: min(520px, 90vw); }
 
   .meme-body {
@@ -176,7 +168,6 @@
     overflow: hidden;
   }
 
-  /* Pink corner accent */
   .meme-body::before {
     content: '';
     position: absolute;
@@ -191,12 +182,11 @@
     flex-direction: column;
     align-items: center;
     gap: 16px;
-    transition: all 0.35s ease;
   }
 
   #meme-img {
-    width: 260px;
-    height: 260px;
+    width: 280px;
+    height: 280px;
     object-fit: contain;
     border-radius: 8px;
     display: none;
@@ -208,18 +198,8 @@
     to   { transform: scale(1);   opacity: 1; }
   }
 
-  .meme-placeholder-icon {
-    font-size: 72px;
-    opacity: 0.15;
-    line-height: 1;
-  }
-  .meme-placeholder-text {
-    font-size: 13px;
-    color: var(--muted);
-    text-align: center;
-    font-weight: 300;
-    line-height: 1.6;
-  }
+  .meme-placeholder-icon { font-size: 72px; opacity: 0.15; line-height: 1; }
+  .meme-placeholder-text { font-size: 13px; color: var(--muted); text-align: center; font-weight: 300; line-height: 1.6; }
 
   #meme-label {
     font-family: 'Syne', sans-serif;
@@ -235,7 +215,6 @@
     border: 1px solid rgba(255,157,226,0.2);
   }
 
-  /* ─── Toolbar ─── */
   .toolbar {
     height: 52px;
     background: var(--titlebar);
@@ -275,12 +254,11 @@
   .capture-btn:hover { transform: scale(1.1); box-shadow: 0 0 20px rgba(255,60,110,0.6); }
   .capture-btn:active { transform: scale(0.95); }
 
-  /* ─── SMALL window: camera ─── */
   .win-cam { width: min(280px, 90vw); margin-bottom: 36px; }
 
   .cam-body {
     flex: 1;
-    min-height: 190px;
+    min-height: 210px;
     background: #0a0a0c;
     position: relative;
     display: flex;
@@ -294,12 +272,13 @@
     height: 100%;
     object-fit: cover;
     display: none;
-    transform: scaleX(-1); /* mirror */
+    transform: scaleX(-1);
   }
 
   #cam-overlay {
     position: absolute;
-    inset: 0;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
     pointer-events: none;
   }
 
@@ -311,8 +290,6 @@
     color: rgba(255,255,255,0.15);
     font-size: 12px;
   }
-
-  #cam-placeholder svg { opacity: 0.3; }
 
   .start-btn {
     position: absolute;
@@ -326,31 +303,21 @@
     padding: 7px 18px;
     font-size: 12px;
     font-family: 'DM Sans', sans-serif;
-    font-weight: 400;
     cursor: pointer;
     white-space: nowrap;
     transition: opacity 0.2s, transform 0.15s;
-    letter-spacing: 0.3px;
   }
   .start-btn:hover { opacity: 0.9; transform: translateX(-50%) scale(1.04); }
 
-  /* Corner scan line effect when active */
   .cam-scanline {
     position: absolute;
     inset: 0;
-    background: repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 3px,
-      rgba(255,60,110,0.015) 3px,
-      rgba(255,60,110,0.015) 4px
-    );
+    background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(255,60,110,0.015) 3px, rgba(255,60,110,0.015) 4px);
     pointer-events: none;
     display: none;
   }
   .cam-active .cam-scanline { display: block; }
 
-  /* Expression tag floating in cam */
   #expr-tag {
     position: absolute;
     top: 8px; left: 8px;
@@ -387,11 +354,8 @@
     border-radius: 4px;
     cursor: pointer;
     font-family: 'DM Sans', sans-serif;
-    transition: background 0.2s;
   }
-  .effects-btn:hover { background: rgba(255,255,255,0.08); }
 
-  /* ─── Expression legend ─── */
   .legend {
     position: relative;
     z-index: 10;
@@ -415,18 +379,9 @@
     color: var(--muted);
     transition: border-color 0.2s, color 0.2s;
   }
-  .legend-chip.active {
-    border-color: var(--accent);
-    color: var(--accent2);
-  }
-  .legend-chip-dot {
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    background: currentColor;
-    flex-shrink: 0;
-  }
+  .legend-chip.active { border-color: var(--accent); color: var(--accent2); }
+  .legend-chip-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
 
-  /* ─── Swap meme hint ─── */
   .hint-box {
     position: relative;
     z-index: 10;
@@ -455,16 +410,16 @@
 
 <header>
   <h1>H2H Face Booth ✨</h1>
-  <p>Hearts2Hearts meme mirror — make a face, get a meme</p>
+  <p>Hearts2Hearts meme mirror — strike a pose, get a meme</p>
   <div id="status-bar">
     <div id="status-dot" class="loading"></div>
-    <span id="status-text">Loading MediaPipe face detector…</span>
+    <span id="status-text">Loading MediaPipe models…</span>
   </div>
 </header>
 
 <div class="stage">
 
-  <!-- ── BIG window: meme display ── -->
+  <!-- BIG window: meme display -->
   <div class="mac-window win-meme">
     <div class="titlebar">
       <div class="titlebar-dot" style="background:var(--dot-r)"></div>
@@ -474,42 +429,30 @@
     </div>
     <div class="meme-body">
       <div id="meme-display">
-        <div class="meme-placeholder-icon">🎭</div>
-        <div class="meme-placeholder-text">Start your camera &amp; make a face<br>to see a Hearts2Hearts meme!</div>
+        <div class="meme-placeholder-icon">🤘</div>
+        <div class="meme-placeholder-text">Start your camera &amp; strike a pose<br>to see a Hearts2Hearts meme!</div>
       </div>
       <img id="meme-img" src="" alt="H2H meme" />
       <div id="meme-label"></div>
     </div>
     <div class="toolbar">
       <div class="view-btn">
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-          <rect x="1" y="1" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.2"/>
-          <rect x="8" y="1" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.2"/>
-          <rect x="1" y="8" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.2"/>
-          <rect x="8" y="8" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.2"/>
-        </svg>
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="1" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.2"/><rect x="8" y="1" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.2"/><rect x="1" y="8" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.2"/><rect x="8" y="8" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.2"/></svg>
       </div>
       <div class="view-btn active">
-        <svg width="14" height="10" viewBox="0 0 14 10" fill="none">
-          <rect x="1" y="1" width="12" height="8" rx="1" stroke="#ff3c6e" stroke-width="1.2"/>
-        </svg>
+        <svg width="14" height="10" viewBox="0 0 14 10" fill="none"><rect x="1" y="1" width="12" height="8" rx="1" stroke="#ff3c6e" stroke-width="1.2"/></svg>
       </div>
       <div class="view-btn">
-        <svg width="16" height="10" viewBox="0 0 16 10" fill="none">
-          <rect x="1" y="1" width="6" height="8" rx="1" stroke="currentColor" stroke-width="1.2"/>
-          <rect x="9" y="1" width="6" height="8" rx="1" stroke="currentColor" stroke-width="1.2"/>
-        </svg>
+        <svg width="16" height="10" viewBox="0 0 16 10" fill="none"><rect x="1" y="1" width="6" height="8" rx="1" stroke="currentColor" stroke-width="1.2"/><rect x="9" y="1" width="6" height="8" rx="1" stroke="currentColor" stroke-width="1.2"/></svg>
       </div>
-      <button class="capture-btn" title="Capture" onclick="captureFrame()">
-        <svg width="16" height="14" viewBox="0 0 16 14" fill="white">
-          <path d="M6 1L5 3H2a1 1 0 00-1 1v8a1 1 0 001 1h12a1 1 0 001-1V4a1 1 0 00-1-1h-3L10 1H6zm2 9a3 3 0 110-6 3 3 0 010 6z"/>
-        </svg>
+      <button class="capture-btn" title="Save photo" onclick="captureFrame()">
+        <svg width="16" height="14" viewBox="0 0 16 14" fill="white"><path d="M6 1L5 3H2a1 1 0 00-1 1v8a1 1 0 001 1h12a1 1 0 001-1V4a1 1 0 00-1-1h-3L10 1H6zm2 9a3 3 0 110-6 3 3 0 010 6z"/></svg>
       </button>
     </div>
   </div>
 
-  <!-- ── SMALL window: camera ── -->
-  <div class="mac-window win-cam" id="cam-window">
+  <!-- SMALL window: camera -->
+  <div class="mac-window win-cam">
     <div class="titlebar">
       <div class="titlebar-dot" style="background:var(--dot-r)"></div>
       <div class="titlebar-dot" style="background:var(--dot-y)"></div>
@@ -534,28 +477,16 @@
     </div>
     <div class="cam-toolbar">
       <div class="view-btn">
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-          <rect x="1" y="1" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.2"/>
-          <rect x="8" y="1" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.2"/>
-          <rect x="1" y="8" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.2"/>
-          <rect x="8" y="8" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.2"/>
-        </svg>
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="1" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.2"/><rect x="8" y="1" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.2"/><rect x="1" y="8" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.2"/><rect x="8" y="8" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.2"/></svg>
       </div>
       <div class="view-btn active">
-        <svg width="14" height="10" viewBox="0 0 14 10" fill="none">
-          <rect x="1" y="1" width="12" height="8" rx="1" stroke="#ff3c6e" stroke-width="1.2"/>
-        </svg>
+        <svg width="14" height="10" viewBox="0 0 14 10" fill="none"><rect x="1" y="1" width="12" height="8" rx="1" stroke="#ff3c6e" stroke-width="1.2"/></svg>
       </div>
       <div class="view-btn">
-        <svg width="16" height="10" viewBox="0 0 16 10" fill="none">
-          <rect x="1" y="1" width="6" height="8" rx="1" stroke="currentColor" stroke-width="1.2"/>
-          <rect x="9" y="1" width="6" height="8" rx="1" stroke="currentColor" stroke-width="1.2"/>
-        </svg>
+        <svg width="16" height="10" viewBox="0 0 16 10" fill="none"><rect x="1" y="1" width="6" height="8" rx="1" stroke="currentColor" stroke-width="1.2"/><rect x="9" y="1" width="6" height="8" rx="1" stroke="currentColor" stroke-width="1.2"/></svg>
       </div>
       <button class="capture-btn" style="width:28px;height:28px;" onclick="captureFrame()">
-        <svg width="12" height="11" viewBox="0 0 16 14" fill="white">
-          <path d="M6 1L5 3H2a1 1 0 00-1 1v8a1 1 0 001 1h12a1 1 0 001-1V4a1 1 0 00-1-1h-3L10 1H6zm2 9a3 3 0 110-6 3 3 0 010 6z"/>
-        </svg>
+        <svg width="12" height="11" viewBox="0 0 16 14" fill="white"><path d="M6 1L5 3H2a1 1 0 00-1 1v8a1 1 0 001 1h12a1 1 0 001-1V4a1 1 0 00-1-1h-3L10 1H6zm2 9a3 3 0 110-6 3 3 0 010 6z"/></svg>
       </button>
       <span class="effects-btn">Effects</span>
     </div>
@@ -563,64 +494,73 @@
 
 </div>
 
-<!-- Expression chips -->
-<div class="legend" id="legend">
-  <div class="legend-chip" id="chip-smiling">
-    <div class="legend-chip-dot"></div>Smiling / happy
-  </div>
-  <div class="legend-chip" id="chip-surprised">
-    <div class="legend-chip-dot"></div>Surprised / mouth open
-  </div>
-  <div class="legend-chip" id="chip-winking">
-    <div class="legend-chip-dot"></div>Winking
-  </div>
-  <div class="legend-chip" id="chip-raised">
-    <div class="legend-chip-dot"></div>Eyebrows raised
-  </div>
-  <div class="legend-chip" id="chip-neutral">
-    <div class="legend-chip-dot"></div>Neutral / poker face
-  </div>
+<!-- Gesture legend -->
+<div class="legend">
+  <div class="legend-chip" id="chip-metal"><div class="legend-chip-dot"></div>🤘 Metal hands</div>
+  <div class="legend-chip" id="chip-shocked"><div class="legend-chip-dot"></div>🤭 Hands on mouth</div>
+  <div class="legend-chip" id="chip-indexfinger"><div class="legend-chip-dot"></div>☝️ Finger on lips</div>
+  <div class="legend-chip" id="chip-dies"><div class="legend-chip-dot"></div>🫦 Hands on neck</div>
+  <div class="legend-chip" id="chip-neutral"><div class="legend-chip-dot"></div>😐 Neutral</div>
 </div>
 
-<!-- How to swap memes hint -->
 <div class="hint-box">
-  <strong>📁 How to add your real H2H memes later:</strong><br>
-  Create a folder called <code>memes/</code> next to this file, then put your images inside named:<br>
-  <code>smiling.jpg</code> &nbsp;·&nbsp; <code>surprised.jpg</code> &nbsp;·&nbsp; <code>winking.jpg</code> &nbsp;·&nbsp; <code>raised.jpg</code> &nbsp;·&nbsp; <code>neutral.jpg</code><br>
-  Then update the <code>MEMES</code> object near the top of the &lt;script&gt; to point to those files.
+  <strong>📁 Your meme files:</strong> make sure these are in your <code>memes/</code> folder:<br>
+  <code>metal.jpg</code> &nbsp;·&nbsp; <code>shocked.jpg</code> &nbsp;·&nbsp; <code>indexfinger.jpg</code> &nbsp;·&nbsp; <code>dies.jpg</code> &nbsp;·&nbsp; <code>neutral.jpg</code><br><br>
+  <strong>🎯 Gesture tips:</strong> Hold each pose for a second — the detector smooths the signal to avoid flickering. Metal hands and finger-on-lips are the most reliable ones!
 </div>
 
-<!-- Hidden canvas for frame capture -->
 <canvas id="capture-canvas" style="display:none"></canvas>
 
 <script type="module">
+
 // ─────────────────────────────────────────────
-//  CONFIGURATION — swap these URLs for your real H2H meme images!
-//  You can use local paths like "memes/smiling.jpg" or any image URL.
+//  MEME CONFIG — update src paths to your actual files
 // ─────────────────────────────────────────────
 const MEMES = {
-  smiling:   { label: 'Smiling 💖',    src: 'https://placehold.co/280x280/c0397e/fff?text=H2H+Smiling+Meme'  },
-  surprised: { label: 'Surprised 😱',  src: 'https://placehold.co/280x280/c0397e/fff?text=H2H+Surprised+Meme' },
-  winking:   { label: 'Winking 😉',    src: 'https://placehold.co/280x280/8b3fa8/fff?text=H2H+Winking+Meme' },
-  raised:    { label: 'Eyebrows 🤨',   src: 'https://placehold.co/280x280/3f63a8/fff?text=H2H+Eyebrows+Meme' },
-  neutral:   { label: 'Neutral 😐',    src: 'memes/neutral.jpg' },
-};
-
-// Detection thresholds — tweak if detections feel too sensitive or not sensitive enough
-const THRESHOLDS = {
-  smile:      0.55,   // how wide the smile must be
-  mouthOpen:  0.35,   // how open the mouth must be (surprised)
-  eyeClosed:  0.25,   // how closed one eye must be (winking)
-  browsRaised: 0.60,  // how high the brows must be
+  metal:       { label: 'Metal 🤘',         src: 'memes/metal.jpg' },
+  shocked:     { label: 'Shocked 🤭',        src: 'memes/shocked.jpg' },
+  indexfinger: { label: 'Shhh ☝️',          src: 'memes/indexfinger.jpg' },
+  dies:        { label: 'Dying 💀',          src: 'memes/dies.jpg' },
+  neutral:     { label: 'Neutral 😐',        src: 'memes/neutral.jpg' },
 };
 
 // ─────────────────────────────────────────────
-//  STATE
+//  HOW THE GESTURE DETECTION WORKS
+//
+//  MediaPipe gives us 21 landmarks per hand, numbered like this:
+//
+//    4  = thumb tip
+//    8  = index finger tip
+//    12 = middle finger tip
+//    16 = ring finger tip
+//    20 = pinky tip
+//
+//    5  = index knuckle (base)
+//    9  = middle knuckle
+//    13 = ring knuckle
+//    17 = pinky knuckle
+//
+//    0  = wrist
+//
+//  Each landmark has x, y (0-1, normalized to video size).
+//  "Finger up" = tip y is ABOVE its knuckle y (remember: y=0 is top of screen)
+//
+//  We also get face landmarks. We use:
+//    13 = upper lip
+//    0  = nose tip (to estimate face center)
+//    152 = chin
 // ─────────────────────────────────────────────
+
+// Smoothing: how many frames to hold a gesture before switching
+// (prevents flickering between gestures)
+const HOLD_FRAMES = 8;
+
 let faceLandmarker = null;
-let lastExpression = null;
-let animFrameId   = null;
-let videoReady    = false;
+let handLandmarker = null;
+let lastGesture    = null;
+let candidateGesture = null;
+let candidateCount   = 0;
+let videoReady     = false;
 
 const video   = document.getElementById('webcam');
 const overlay = document.getElementById('cam-overlay');
@@ -632,34 +572,43 @@ function setStatus(state, text) {
 }
 
 // ─────────────────────────────────────────────
-//  LOAD MEDIAPIPE
+//  LOAD BOTH MEDIAPIPE MODELS
 // ─────────────────────────────────────────────
-async function loadMediaPipe() {
-  setStatus('loading', 'Loading MediaPipe face detector…');
+async function loadModels() {
+  setStatus('loading', 'Loading hand + face models…');
   try {
-    const { FaceLandmarker, FilesetResolver } = await import(
+    const { FaceLandmarker, HandLandmarker, FilesetResolver } = await import(
       'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/vision_bundle.mjs'
     );
 
-    const filesetResolver = await FilesetResolver.forVisionTasks(
+    const vision = await FilesetResolver.forVisionTasks(
       'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm'
     );
 
-    faceLandmarker = await FaceLandmarker.createFromOptions(filesetResolver, {
-      baseOptions: {
-        modelAssetPath:
-          'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task',
-        delegate: 'GPU',
-      },
-      outputFaceBlendshapes: true,
-      runningMode: 'VIDEO',
-      numFaces: 1,
-    });
+    // Load both models in parallel for speed
+    [faceLandmarker, handLandmarker] = await Promise.all([
+      FaceLandmarker.createFromOptions(vision, {
+        baseOptions: {
+          modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task',
+          delegate: 'GPU',
+        },
+        runningMode: 'VIDEO',
+        numFaces: 1,
+      }),
+      HandLandmarker.createFromOptions(vision, {
+        baseOptions: {
+          modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task',
+          delegate: 'GPU',
+        },
+        runningMode: 'VIDEO',
+        numHands: 2,
+      }),
+    ]);
 
-    setStatus('ready', 'Face detector ready — enable camera to start!');
+    setStatus('ready', 'Ready — enable camera and strike a pose!');
   } catch (err) {
     console.error(err);
-    setStatus('loading', 'Error loading detector: ' + err.message);
+    setStatus('loading', 'Error loading models: ' + err.message);
   }
 }
 
@@ -679,146 +628,222 @@ window.startCamera = async function() {
       videoReady = true;
       overlay.width  = video.videoWidth;
       overlay.height = video.videoHeight;
-      setStatus('ready', 'Camera active — make a face!');
+      setStatus('ready', 'Camera active — strike a pose!');
       detectLoop();
     });
   } catch (err) {
-    setStatus('loading', 'Camera access denied. Please allow camera in your browser.');
     alert('Could not access camera: ' + err.message);
   }
 };
 
 // ─────────────────────────────────────────────
-//  DETECTION LOOP
+//  MAIN DETECTION LOOP
 // ─────────────────────────────────────────────
 function detectLoop() {
-  if (!videoReady || !faceLandmarker) {
-    animFrameId = requestAnimationFrame(detectLoop);
+  if (!videoReady || !faceLandmarker || !handLandmarker) {
+    requestAnimationFrame(detectLoop);
     return;
   }
 
-  const result = faceLandmarker.detectForVideo(video, performance.now());
+  const now = performance.now();
+  const faceResult = faceLandmarker.detectForVideo(video, now);
+  const handResult = handLandmarker.detectForVideo(video, now);
+
   ctx.clearRect(0, 0, overlay.width, overlay.height);
 
-  if (result.faceBlendshapes && result.faceBlendshapes.length > 0) {
-    const blendshapes = result.faceBlendshapes[0].categories;
-    const bs = {};
-    blendshapes.forEach(b => { bs[b.categoryName] = b.score; });
+  const faceLMs = faceResult.faceLandmarks?.[0] ?? null;
+  const hands   = handResult.landmarks ?? [];
 
-    const expr = classifyExpression(bs);
-    updateExpression(expr);
-    drawFaceBox(result.faceLandmarks?.[0]);
+  // Draw face + hand outlines on the overlay canvas
+  if (faceLMs) drawFaceBox(faceLMs);
+  hands.forEach(h => drawHandDots(h));
+
+  // Classify the current gesture
+  const raw = classifyGesture(hands, faceLMs);
+
+  // Smoothing: only switch if the same gesture holds for HOLD_FRAMES frames
+  if (raw === candidateGesture) {
+    candidateCount++;
+    if (candidateCount >= HOLD_FRAMES) {
+      updateMeme(raw);
+    }
   } else {
-    updateExpression(null);
+    candidateGesture = raw;
+    candidateCount   = 1;
   }
 
-  animFrameId = requestAnimationFrame(detectLoop);
+  requestAnimationFrame(detectLoop);
 }
 
 // ─────────────────────────────────────────────
-//  EXPRESSION CLASSIFIER
-//  Uses MediaPipe blendshape scores to map to our 5 expressions
+//  GESTURE CLASSIFIER
+//
+//  Priority order (checked top to bottom):
+//  1. metal      — index + pinky up, middle + ring down
+//  2. shocked    — hand(s) covering mouth area
+//  3. indexfinger— only index finger extended, near mouth
+//  4. dies       — hand(s) near neck/throat area
+//  5. neutral    — fallback when no hands or no match
 // ─────────────────────────────────────────────
-function classifyExpression(bs) {
-  const smile      = Math.max(bs['mouthSmileLeft'] ?? 0, bs['mouthSmileRight'] ?? 0);
-  const mouthOpen  = bs['jawOpen'] ?? 0;
-  const leftEyeClose  = bs['eyeBlinkLeft']  ?? 0;
-  const rightEyeClose = bs['eyeBlinkRight'] ?? 0;
-  const browsUp    = Math.max(bs['browInnerUp'] ?? 0, bs['browOuterUpLeft'] ?? 0, bs['browOuterUpRight'] ?? 0);
+function classifyGesture(hands, faceLMs) {
+  if (hands.length === 0) return 'neutral';
 
-  // Winking: one eye closed, other open
-  const leftWink  = leftEyeClose  > THRESHOLDS.eyeClosed && rightEyeClose < THRESHOLDS.eyeClosed;
-  const rightWink = rightEyeClose > THRESHOLDS.eyeClosed && leftEyeClose  < THRESHOLDS.eyeClosed;
+  // Get face reference points (normalized 0-1)
+  // We use these to check if hands are near the mouth, neck, etc.
+  const mouth = faceLMs ? faceLMs[13] : null;  // upper lip
+  const chin  = faceLMs ? faceLMs[152] : null; // chin bottom
 
-  if (leftWink || rightWink)                   return 'winking';
-  if (mouthOpen > THRESHOLDS.mouthOpen)        return 'surprised';
-  if (browsUp   > THRESHOLDS.browsRaised && mouthOpen < 0.2) return 'raised';
-  if (smile     > THRESHOLDS.smile)            return 'smiling';
+  for (const hand of hands) {
+    // ── Finger states ──────────────────────────────
+    // "up" means the fingertip is higher on screen than its base knuckle
+    // (lower y value = higher on screen)
+    const thumbUp  = hand[4].y  < hand[2].y;
+    const indexUp  = hand[8].y  < hand[5].y;
+    const middleUp = hand[12].y < hand[9].y;
+    const ringUp   = hand[16].y < hand[13].y;
+    const pinkyUp  = hand[20].y < hand[17].y;
+
+    // ── 1. METAL: index + pinky up, middle + ring folded ──
+    if (indexUp && pinkyUp && !middleUp && !ringUp) {
+      return 'metal';
+    }
+
+    // ── 2. SHOCKED: palm near mouth (wrist + index knuckle near mouth y) ──
+    if (mouth) {
+      const palmCenterY = (hand[0].y + hand[9].y) / 2;
+      const palmCenterX = (hand[0].x + hand[9].x) / 2;
+      // Palm is near mouth: within ~15% of screen vertically, centered-ish
+      const nearMouthY = Math.abs(palmCenterY - mouth.y) < 0.15;
+      const nearMouthX = Math.abs(palmCenterX - 0.5) < 0.35;
+      if (nearMouthY && nearMouthX && !indexUp && !middleUp) {
+        return 'shocked';
+      }
+    }
+
+    // ── 3. INDEX FINGER: only index up, near mouth ──
+    if (mouth) {
+      const indexTipNearMouth =
+        Math.abs(hand[8].x - mouth.x) < 0.15 &&
+        Math.abs(hand[8].y - mouth.y) < 0.18;
+      if (indexUp && !middleUp && !ringUp && !pinkyUp && indexTipNearMouth) {
+        return 'indexfinger';
+      }
+    }
+
+    // ── 4. DIES: hand near neck (below chin, above chest ~y>0.7) ──
+    if (chin) {
+      const wristY = hand[0].y;
+      // Hand wrist is below chin but not too low (neck zone)
+      const neckZone = wristY > chin.y && wristY < chin.y + 0.25;
+      const centered = Math.abs(hand[0].x - 0.5) < 0.35;
+      if (neckZone && centered) {
+        return 'dies';
+      }
+    }
+  }
+
   return 'neutral';
 }
 
 // ─────────────────────────────────────────────
-//  UPDATE UI
+//  UPDATE MEME DISPLAY
 // ─────────────────────────────────────────────
-function updateExpression(expr) {
-  // Clear all chips
+function updateMeme(gesture) {
   document.querySelectorAll('.legend-chip').forEach(c => c.classList.remove('active'));
 
-  const exprTag  = document.getElementById('expr-tag');
-  const memeImg  = document.getElementById('meme-img');
-  const memeLbl  = document.getElementById('meme-label');
+  const exprTag = document.getElementById('expr-tag');
+  const memeImg = document.getElementById('meme-img');
+  const memeLbl = document.getElementById('meme-label');
   const memePlaceholder = document.getElementById('meme-display');
+  const meme    = MEMES[gesture];
 
-  if (!expr) {
-    exprTag.style.display = 'none';
-    return;
-  }
-
-  // Highlight chip
-  const chip = document.getElementById('chip-' + expr);
+  const chip = document.getElementById('chip-' + gesture);
   if (chip) chip.classList.add('active');
 
-  // Show expression tag in camera
-  const meme = MEMES[expr];
   exprTag.style.display = 'block';
   exprTag.textContent   = meme.label;
-
   setStatus('detected', 'Detected: ' + meme.label);
 
-  // Only update meme display if expression changed (avoid flicker)
-  if (expr !== lastExpression) {
-    lastExpression = expr;
-    memePlaceholder.style.display  = 'none';
-    memeImg.style.display  = 'block';
-    memeLbl.style.display  = 'block';
-    memeImg.src    = meme.src;
-    memeImg.alt    = meme.label;
+  if (gesture !== lastGesture) {
+    lastGesture = gesture;
+    memePlaceholder.style.display = 'none';
+    memeImg.style.display = 'block';
+    memeLbl.style.display = 'block';
+    memeImg.src = meme.src;
+    memeImg.alt = meme.label;
     memeLbl.textContent = meme.label;
 
     // Re-trigger pop animation
     memeImg.style.animation = 'none';
-    void memeImg.offsetWidth; // reflow
+    void memeImg.offsetWidth;
     memeImg.style.animation = '';
   }
 }
 
 // ─────────────────────────────────────────────
-//  DRAW SUBTLE FACE BOX ON OVERLAY
+//  DRAW FACE BOX (corner bracket style)
 // ─────────────────────────────────────────────
 function drawFaceBox(landmarks) {
-  if (!landmarks || landmarks.length === 0) return;
-
-  const xs = landmarks.map(l => l.x * overlay.width);
+  const xs = landmarks.map(l => (1 - l.x) * overlay.width); // mirror x
   const ys = landmarks.map(l => l.y * overlay.height);
-  const minX = Math.min(...xs), maxX = Math.max(...xs);
-  const minY = Math.min(...ys), maxY = Math.max(...ys);
-  const pad = 12;
+  const minX = Math.min(...xs) - 12, maxX = Math.max(...xs) + 12;
+  const minY = Math.min(...ys) - 12, maxY = Math.max(...ys) + 12;
+  const cs = 14;
 
-  // Mirror the x because video is mirrored via CSS
-  const mMinX = overlay.width - maxX - pad;
-  const mMaxX = overlay.width - minX + pad;
-
-  ctx.strokeStyle = 'rgba(255, 60, 110, 0.6)';
-  ctx.lineWidth   = 1.5;
-
-  // Corner-bracket style
-  const bx = mMinX, by = minY - pad, bw = mMaxX - mMinX, bh = maxY - minY + pad * 2;
-  const cs = 16; // corner size
+  ctx.strokeStyle = 'rgba(255, 60, 110, 0.55)';
+  ctx.lineWidth = 1.5;
   ctx.beginPath();
-  ctx.moveTo(bx + cs, by); ctx.lineTo(bx, by); ctx.lineTo(bx, by + cs);
-  ctx.moveTo(bx + bw - cs, by); ctx.lineTo(bx + bw, by); ctx.lineTo(bx + bw, by + cs);
-  ctx.moveTo(bx, by + bh - cs); ctx.lineTo(bx, by + bh); ctx.lineTo(bx + cs, by + bh);
-  ctx.moveTo(bx + bw - cs, by + bh); ctx.lineTo(bx + bw, by + bh); ctx.lineTo(bx + bw, by + bh - cs);
+  ctx.moveTo(minX + cs, minY); ctx.lineTo(minX, minY); ctx.lineTo(minX, minY + cs);
+  ctx.moveTo(maxX - cs, minY); ctx.lineTo(maxX, minY); ctx.lineTo(maxX, minY + cs);
+  ctx.moveTo(minX, maxY - cs); ctx.lineTo(minX, maxY); ctx.lineTo(minX + cs, maxY);
+  ctx.moveTo(maxX - cs, maxY); ctx.lineTo(maxX, maxY); ctx.lineTo(maxX, maxY - cs);
   ctx.stroke();
 }
 
 // ─────────────────────────────────────────────
-//  CAPTURE (save screenshot)
+//  DRAW HAND DOTS
+// ─────────────────────────────────────────────
+function drawHandDots(landmarks) {
+  // Connections between landmarks for a skeleton look
+  const connections = [
+    [0,1],[1,2],[2,3],[3,4],         // thumb
+    [0,5],[5,6],[6,7],[7,8],         // index
+    [5,9],[9,10],[10,11],[11,12],    // middle
+    [9,13],[13,14],[14,15],[15,16],  // ring
+    [13,17],[17,18],[18,19],[19,20], // pinky
+    [0,17],                          // palm edge
+  ];
+
+  ctx.strokeStyle = 'rgba(255, 157, 226, 0.5)';
+  ctx.lineWidth = 1;
+  connections.forEach(([a, b]) => {
+    ctx.beginPath();
+    // Mirror x (video is CSS-flipped)
+    ctx.moveTo((1 - landmarks[a].x) * overlay.width, landmarks[a].y * overlay.height);
+    ctx.lineTo((1 - landmarks[b].x) * overlay.width, landmarks[b].y * overlay.height);
+    ctx.stroke();
+  });
+
+  // Draw dots on fingertips
+  [4, 8, 12, 16, 20].forEach(i => {
+    ctx.fillStyle = 'rgba(255, 60, 110, 0.8)';
+    ctx.beginPath();
+    ctx.arc(
+      (1 - landmarks[i].x) * overlay.width,
+      landmarks[i].y * overlay.height,
+      3, 0, Math.PI * 2
+    );
+    ctx.fill();
+  });
+}
+
+// ─────────────────────────────────────────────
+//  CAPTURE / SAVE PHOTO
 // ─────────────────────────────────────────────
 window.captureFrame = function() {
-  const c = document.getElementById('capture-canvas');
+  const c  = document.getElementById('capture-canvas');
   c.width  = video.videoWidth  || 280;
-  c.height = video.videoHeight || 190;
+  c.height = video.videoHeight || 210;
   const cx = c.getContext('2d');
   cx.save();
   cx.scale(-1, 1);
@@ -831,9 +856,9 @@ window.captureFrame = function() {
 };
 
 // ─────────────────────────────────────────────
-//  INIT
+//  START
 // ─────────────────────────────────────────────
-loadMediaPipe();
+loadModels();
 </script>
 </body>
 </html>
