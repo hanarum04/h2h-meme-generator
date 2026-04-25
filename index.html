@@ -497,16 +497,20 @@
 <!-- Gesture legend -->
 <div class="legend">
   <div class="legend-chip" id="chip-metal"><div class="legend-chip-dot"></div>🤘 Metal hands</div>
-  <div class="legend-chip" id="chip-shocked"><div class="legend-chip-dot"></div>🤭 Hands on mouth</div>
+  <div class="legend-chip" id="chip-shocked"><div class="legend-chip-dot"></div>🤭 1 hand on mouth</div>
   <div class="legend-chip" id="chip-indexfinger"><div class="legend-chip-dot"></div>☝️ Finger on lips</div>
-  <div class="legend-chip" id="chip-dies"><div class="legend-chip-dot"></div>🫦 Hands on neck</div>
+  <div class="legend-chip" id="chip-dies"><div class="legend-chip-dot"></div>💀 2 hands on neck</div>
+  <div class="legend-chip" id="chip-upsidedownpeace"><div class="legend-chip-dot"></div>✌️ Upside down peace</div>
   <div class="legend-chip" id="chip-neutral"><div class="legend-chip-dot"></div>😐 Neutral</div>
 </div>
 
 <div class="hint-box">
   <strong>📁 Your meme files:</strong> make sure these are in your <code>memes/</code> folder:<br>
-  <code>metal.jpg</code> &nbsp;·&nbsp; <code>shocked.jpg</code> &nbsp;·&nbsp; <code>indexfinger.jpg</code> &nbsp;·&nbsp; <code>dies.jpg</code> &nbsp;·&nbsp; <code>neutral.jpg</code><br><br>
-  <strong>🎯 Gesture tips:</strong> Hold each pose for a second — the detector smooths the signal to avoid flickering. Metal hands and finger-on-lips are the most reliable ones!
+  <code>metal.jpg</code> &nbsp;·&nbsp; <code>shocked.jpg</code> &nbsp;·&nbsp; <code>indexfinger.jpg</code> &nbsp;·&nbsp; <code>dies.jpg</code> &nbsp;·&nbsp; <code>upsidedownpeace.jpg</code> &nbsp;·&nbsp; <code>neutral.jpg</code><br><br>
+  <strong>🎯 Gesture guide:</strong><br>
+  <strong style="color:var(--text)">Shocked</strong> — 1 hand covering mouth &nbsp;·&nbsp;
+  <strong style="color:var(--text)">Dies</strong> — 2 hands on neck &nbsp;·&nbsp;
+  <strong style="color:var(--text)">Upside down peace</strong> — ✌️ but flipped so fingers point down
 </div>
 
 <canvas id="capture-canvas" style="display:none"></canvas>
@@ -517,11 +521,12 @@
 //  MEME CONFIG — update src paths to your actual files
 // ─────────────────────────────────────────────
 const MEMES = {
-  metal:       { label: 'Metal 🤘',         src: 'memes/metal.jpg' },
-  shocked:     { label: 'Shocked 🤭',        src: 'memes/shocked.jpg' },
-  indexfinger: { label: 'Shhh ☝️',          src: 'memes/indexfinger.jpg' },
-  dies:        { label: 'Dying 💀',          src: 'memes/dies.jpg' },
-  neutral:     { label: 'Neutral 😐',        src: 'memes/neutral.jpg' },
+  metal:          { label: 'Metal 🤘',         src: 'memes/metal.jpg' },
+  shocked:        { label: 'Shocked 🤭',        src: 'memes/shocked.jpg' },
+  indexfinger:    { label: 'Shhh ☝️',          src: 'memes/indexfinger.jpg' },
+  dies:           { label: 'Dying 💀',          src: 'memes/dies.jpg' },
+  upsidedownpeace:{ label: 'Peace ✌️',          src: 'memes/upsidedownpeace.jpg' },
+  neutral:        { label: 'Neutral 😐',        src: 'memes/neutral.jpg' },
 };
 
 // ─────────────────────────────────────────────
@@ -679,66 +684,104 @@ function detectLoop() {
 //  GESTURE CLASSIFIER
 //
 //  Priority order (checked top to bottom):
-//  1. metal      — index + pinky up, middle + ring down
-//  2. shocked    — hand(s) covering mouth area
-//  3. indexfinger— only index finger extended, near mouth
-//  4. dies       — hand(s) near neck/throat area
-//  5. neutral    — fallback when no hands or no match
+//  1. metal           — index + pinky up, middle + ring down (any hand count)
+//  2. upsidedownpeace — index + middle up, hand flipped (wrist BELOW fingertips)
+//  3. indexfinger     — only index up, tip near mouth
+//  4. dies            — TWO hands near neck area
+//  5. shocked         — ONE hand covering mouth area
+//  6. neutral         — fallback
+//
+//  KEY FIX for shocked vs dies:
+//  We now check hand COUNT first:
+//    - 2 hands near face/neck → dies
+//    - 1 hand near mouth      → shocked
 // ─────────────────────────────────────────────
 function classifyGesture(hands, faceLMs) {
   if (hands.length === 0) return 'neutral';
 
-  // Get face reference points (normalized 0-1)
-  // We use these to check if hands are near the mouth, neck, etc.
-  const mouth = faceLMs ? faceLMs[13] : null;  // upper lip
-  const chin  = faceLMs ? faceLMs[152] : null; // chin bottom
+  const mouth = faceLMs ? faceLMs[13]  : null; // upper lip landmark
+  const chin  = faceLMs ? faceLMs[152] : null; // chin bottom landmark
 
+  // ── Helper: get finger states for a hand ──────────────────
+  // "up" = fingertip y is LESS than knuckle y (higher on screen)
+  function fingers(hand) {
+    return {
+      indexUp:  hand[8].y  < hand[5].y,
+      middleUp: hand[12].y < hand[9].y,
+      ringUp:   hand[16].y < hand[13].y,
+      pinkyUp:  hand[20].y < hand[17].y,
+      // "flipped" = wrist is BELOW the middle knuckle (hand pointing downward)
+      flipped:  hand[0].y  > hand[9].y,
+    };
+  }
+
+  // ── Helper: is a hand's palm near the mouth? ──────────────
+  function palmNearMouth(hand) {
+    if (!mouth) return false;
+    const palmY = (hand[0].y + hand[9].y) / 2;
+    const palmX = (hand[0].x + hand[9].x) / 2;
+    return Math.abs(palmY - mouth.y) < 0.18 && Math.abs(palmX - 0.5) < 0.38;
+  }
+
+  // ── Helper: is a hand's wrist in the neck zone? ───────────
+  function wristAtNeck(hand) {
+    if (!chin) return false;
+    return hand[0].y > chin.y && hand[0].y < chin.y + 0.28 && Math.abs(hand[0].x - 0.5) < 0.40;
+  }
+
+  // ── 1. METAL: check any hand for index + pinky up ─────────
   for (const hand of hands) {
-    // ── Finger states ──────────────────────────────
-    // "up" means the fingertip is higher on screen than its base knuckle
-    // (lower y value = higher on screen)
-    const thumbUp  = hand[4].y  < hand[2].y;
-    const indexUp  = hand[8].y  < hand[5].y;
-    const middleUp = hand[12].y < hand[9].y;
-    const ringUp   = hand[16].y < hand[13].y;
-    const pinkyUp  = hand[20].y < hand[17].y;
-
-    // ── 1. METAL: index + pinky up, middle + ring folded ──
-    if (indexUp && pinkyUp && !middleUp && !ringUp) {
+    const f = fingers(hand);
+    if (f.indexUp && f.pinkyUp && !f.middleUp && !f.ringUp) {
       return 'metal';
     }
+  }
 
-    // ── 2. SHOCKED: palm near mouth (wrist + index knuckle near mouth y) ──
-    if (mouth) {
-      const palmCenterY = (hand[0].y + hand[9].y) / 2;
-      const palmCenterX = (hand[0].x + hand[9].x) / 2;
-      // Palm is near mouth: within ~15% of screen vertically, centered-ish
-      const nearMouthY = Math.abs(palmCenterY - mouth.y) < 0.15;
-      const nearMouthX = Math.abs(palmCenterX - 0.5) < 0.35;
-      if (nearMouthY && nearMouthX && !indexUp && !middleUp) {
-        return 'shocked';
-      }
+  // ── 2. UPSIDE DOWN PEACE: index + middle up, hand flipped ─
+  // The hand is held upside down so wrist is BELOW the fingertips
+  for (const hand of hands) {
+    const f = fingers(hand);
+    if (f.indexUp && f.middleUp && !f.ringUp && !f.pinkyUp && f.flipped) {
+      return 'upsidedownpeace';
     }
+  }
 
-    // ── 3. INDEX FINGER: only index up, near mouth ──
-    if (mouth) {
-      const indexTipNearMouth =
-        Math.abs(hand[8].x - mouth.x) < 0.15 &&
-        Math.abs(hand[8].y - mouth.y) < 0.18;
-      if (indexUp && !middleUp && !ringUp && !pinkyUp && indexTipNearMouth) {
+  // ── 3. INDEX FINGER on lips: only index up, tip near mouth ─
+  if (mouth) {
+    for (const hand of hands) {
+      const f = fingers(hand);
+      const tipNearMouth =
+        Math.abs(hand[8].x - mouth.x) < 0.16 &&
+        Math.abs(hand[8].y - mouth.y) < 0.20;
+      if (f.indexUp && !f.middleUp && !f.ringUp && !f.pinkyUp && tipNearMouth) {
         return 'indexfinger';
       }
     }
+  }
 
-    // ── 4. DIES: hand near neck (below chin, above chest ~y>0.7) ──
-    if (chin) {
-      const wristY = hand[0].y;
-      // Hand wrist is below chin but not too low (neck zone)
-      const neckZone = wristY > chin.y && wristY < chin.y + 0.25;
-      const centered = Math.abs(hand[0].x - 0.5) < 0.35;
-      if (neckZone && centered) {
-        return 'dies';
-      }
+  // ── 4. DIES: needs TWO hands near neck ────────────────────
+  // Count how many hands are in the neck zone
+  if (hands.length >= 2) {
+    const handsAtNeck = hands.filter(h => wristAtNeck(h));
+    if (handsAtNeck.length >= 2) {
+      return 'dies';
+    }
+  }
+
+  // ── 5. SHOCKED: ONE hand covering mouth (palm closed) ─────
+  for (const hand of hands) {
+    const f = fingers(hand);
+    // Fingers should be folded (not extended) — hand is covering mouth
+    if (!f.indexUp && !f.middleUp && palmNearMouth(hand)) {
+      return 'shocked';
+    }
+  }
+
+  // Also catch shocked with slightly open hand near mouth
+  // (some people cover mouth with open palm)
+  for (const hand of hands) {
+    if (palmNearMouth(hand) && hands.length === 1) {
+      return 'shocked';
     }
   }
 
