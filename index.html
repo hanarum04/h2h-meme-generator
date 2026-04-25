@@ -710,8 +710,6 @@ function classifyGesture(hands, faceLMs) {
       middleUp: hand[12].y < hand[9].y,
       ringUp:   hand[16].y < hand[13].y,
       pinkyUp:  hand[20].y < hand[17].y,
-      // "flipped" = wrist is BELOW the middle knuckle (hand pointing downward)
-      flipped:  hand[0].y  > hand[9].y,
     };
   }
 
@@ -737,11 +735,13 @@ function classifyGesture(hands, faceLMs) {
     }
   }
 
-  // ── 2. UPSIDE DOWN PEACE: index + middle up, hand flipped ─
-  // The hand is held upside down so wrist is BELOW the fingertips
+  // ── 2. UPSIDE DOWN PEACE: index + middle extended, wrist ABOVE fingertips ─
+  // Hand is held above head with fingers pointing downward.
+  // So wrist y < fingertip y (wrist is higher on screen = smaller y value)
   for (const hand of hands) {
     const f = fingers(hand);
-    if (f.indexUp && f.middleUp && !f.ringUp && !f.pinkyUp && f.flipped) {
+    const wristAboveFingers = hand[0].y < hand[8].y && hand[0].y < hand[12].y;
+    if (f.indexUp && f.middleUp && !f.ringUp && !f.pinkyUp && wristAboveFingers) {
       return 'upsidedownpeace';
     }
   }
