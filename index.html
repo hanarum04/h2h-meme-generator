@@ -737,11 +737,13 @@ function classifyGesture(hands, faceLMs) {
 
   // ── 2. UPSIDE DOWN PEACE: index + middle extended, wrist ABOVE fingertips ─
   // Hand is held above head with fingers pointing downward.
-  // So wrist y < fingertip y (wrist is higher on screen = smaller y value)
+  // We only check that index + middle are out AND wrist is higher on screen
+  // than the fingertips. We don't check ring/pinky since they can be
+  // partially hidden or ambiguous from this angle.
   for (const hand of hands) {
     const f = fingers(hand);
     const wristAboveFingers = hand[0].y < hand[8].y && hand[0].y < hand[12].y;
-    if (f.indexUp && f.middleUp && !f.ringUp && !f.pinkyUp && wristAboveFingers) {
+    if (wristAboveFingers) {
       return 'upsidedownpeace';
     }
   }
